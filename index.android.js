@@ -11,15 +11,73 @@ import {
 import {
     StackNavigator,
 } from 'react-navigation';
+import Config from 'react-native-config'
 
 class SignInFields extends Component {
+    constructor(props) {
+        super(props);
+        this.state = { username: '', password: '' };
+        this.handleButtonPress = this.handleButtonPress.bind(this);
+    }
+
+    handleButtonPress() {
+        var details = {
+            'client_id': Config.CLIENT_ID,
+            'client_secret': Config.CLIENT_SECRET,
+            'grant_type': 'password',
+            'username': this.state.username,
+            'password': this.state.password
+        };
+        const formBody = Object.keys(details).map(key=>encodeURIComponent(key) + '=' + encodeURIComponent(details[key])).join('&');
+
+        fetch('https://online-go.com/oauth2/token/', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: formBody
+        })
+        .then((response) => response.json())
+        .then((responseJson) => {
+            // TODO parse JSON
+            // {
+            //     'access_token': '',
+            //     'scope': 'read',
+            //     'expires_in': '123456789',
+            //     'refresh_token': '',
+            // }
+            console.log('access token: ' +  responseJson.access_token);
+            console.log('refresh token: ' +  responseJson.refresh_token);
+            console.log('token expires in: ' +  responseJson.expires_in_token);
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+    };
+
     render() {
         return (
             <View>
-                <TextInput style={{height: 40, width: 300}} placeholder="Username or Email"
-                    onChangeText={(text) => this.setState({text})}/>
-                <TextInput style={{height: 40, width: 300}} placeholder="Password"
-                    onChangeText={(text) => this.setState({text})}/>
+                <TextInput style={{height: 40, width: 300}}
+                    keyboardType="default"
+                    autoCapitalization="none"
+                    autoCorrect={false}
+                    multiline={false}
+                    placeholder="Username or Email"
+                    returnKeyType="next"
+                    onChangeText={(text) => this.setState({username: text})}/>
+                <TextInput style={{height: 40, width: 300}}
+                    keyboardType="default"
+                    autoCapitalization="none"
+                    autoCorrect={false}
+                    multiline={false}
+                    placeholder="Username or Email"
+                    returnKeyType="next"
+                    secureTextEntry={true}
+                    placeholder="Password"
+                    onChangeText={(text) => this.setState({password: text})}/>
+                <Button title="Sign In" onPress={ () => this.handleButtonPress() }/>
             </View>
         );
     }
@@ -56,6 +114,7 @@ class HomeScreen extends Component {
     }
 }
 
+
 class SignInScreen extends Component {
     static navigationOptions = () => ({
         title: 'Sign In',
@@ -72,13 +131,6 @@ class SignInScreen extends Component {
                     <SignInFields/>
                 </View>
                 <View style={{flex: 1, width: 250, paddingVertical: 20}}>
-                    <Button onPress={ () => {} } title="Sign In"/>
-                </View>
-                <View style={{flex: 1, paddingVertical: 20}}>
-                    <Text>or sign in with</Text>
-                </View>
-                <View style={{flex: 1, paddingVertical: 20}}>
-                    <AltSignInOptions/>
                 </View>
             </View>
         );
